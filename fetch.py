@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 
-def getTextsFromUrl(url):
+def get_texts_from_url(url):
     response = requests.get(url)
     soup = BeautifulSoup(response.content, 'html.parser')
     paragraphs = soup.find_all('p')
