@@ -1,13 +1,14 @@
 import spacy
 import networkx as nx
 import numpy as np
+from sanitize import *
 
 nlp = spacy.load("en_core_web_sm")
 
-
 def Preprocess_text(text):
   # Preprocess the text
-  doc = nlp(text)
+  sanitized_text = sanitize_text(text)
+  doc = nlp(sanitized_text)
 
   # Split the text into individual sentences
   sentences = [sent.text.strip() for sent in doc.sents]
@@ -51,3 +52,12 @@ def Generate_summarized_text(scores, num_sentences, sentences):
   summary = [sentences[i] for i in top_sentence_indices]
   return summary
 
+
+
+def summarize_extractive(text, num_sentences):
+  preprocessed_text, sentences_list = Preprocess_text(text)
+
+  similarit_matrix_calculated_score = Calculate_similarity_matrix(preprocessed_text)
+
+  summary = Generate_summarized_text(similarit_matrix_calculated_score, num_sentences, sentences_list)
+  return summary
