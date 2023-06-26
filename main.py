@@ -47,6 +47,9 @@ def summarizeUrl():
     url = request.args.get("url")
     text = get_texts_from_url(url)
     num_sentences = request.args.get("num_sentences")
+    method = request.args.get("method")
+    summary = None
+    
     if not url:
         error_response = jsonify(error="Missing or empty 'url' parameter")
         return error_response, 400
