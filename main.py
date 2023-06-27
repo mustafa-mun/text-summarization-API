@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request
 from extractive import * 
 from abstractive import *
 from fetch import *
+from detectlang import *
 
 app = Flask(__name__)
 
@@ -15,6 +16,7 @@ def apiStatus():
 @app.route("/summarizeText", methods=["POST"])
 def summarizeText():
     text = request.args.get("text")
+    language = detect_language_of_text(text)
     num_sentences = request.args.get("num_sentences")
     method = request.args.get("method")
     summary = None
@@ -31,14 +33,14 @@ def summarizeText():
 
     num_sentences = int(num_sentences)
     if method == "extractive":
-        summary = summarize_extractive(text, num_sentences)
+        summary = summarize_extractive(text, num_sentences, language)
     elif method == "abstractive":
         summary = summarize_abstractive(text)
     else:
         error_response = jsonify(error="Method not allowed")
         return error_response, 400
 
-    resp = jsonify(summarized_text = summary)
+    resp = jsonify(summarized_text = summary, text_language = language.name)
     resp.mimetype = 'application/json'
     return resp
     
@@ -46,6 +48,7 @@ def summarizeText():
 def summarizeUrl():
     url = request.args.get("url")
     text = get_texts_from_url(url)
+    language = detect_language_of_text(text)
     num_sentences = request.args.get("num_sentences")
     method = request.args.get("method")
     summary = None
@@ -62,7 +65,7 @@ def summarizeUrl():
 
     num_sentences = int(num_sentences)
     if method == "extractive":
-        summary = summarize_extractive(text, num_sentences)
+        summary = summarize_extractive(text, num_sentences, language)
     elif method == "abstractive":
         summary = summarize_abstractive(text)
     else:
@@ -70,6 +73,10 @@ def summarizeUrl():
         return error_response, 400
     
 
-    resp = jsonify(summarized_text = summary)
+    resp = jsonify(summarized_text = summary, text_language = language.name)
     resp.mimetype = 'application/json'
     return resp
+
+
+if __name__ == "__main__":
+    app.run(host='127.0.0.1', port=5002)

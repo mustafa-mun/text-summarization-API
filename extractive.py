@@ -2,10 +2,14 @@ import spacy
 import networkx as nx
 import numpy as np
 from sanitize import *
+from lingua import Language
 
-nlp = spacy.load("en_core_web_sm")
-
-def Preprocess_text(text):
+def Preprocess_text(text, language):
+  nlp = None
+  if language == Language.ENGLISH: 
+    nlp = spacy.load("en_core_web_md") # english model
+  else:
+     nlp = spacy.load("xx_sent_ud_sm") # multi-language model
   # Preprocess the text
   sanitized_text = sanitize_text(text)
   doc = nlp(sanitized_text)
@@ -25,11 +29,11 @@ def Preprocess_text(text):
               words.append(word.lemma_)
       lemmatized_sentences.append(" ".join(words))
 
-  return lemmatized_sentences,sentences   
+  return lemmatized_sentences,sentences,nlp   
 
 
 
-def Calculate_similarity_matrix(lemmetized_list):
+def Calculate_similarity_matrix(lemmetized_list, nlp):
   # Calculate the similarity matrix
   similarity_matrix = []
   for i in range(len(lemmetized_list)):
@@ -54,10 +58,10 @@ def Generate_summarized_text(scores, num_sentences, sentences):
 
 
 
-def summarize_extractive(text, num_sentences):
-  preprocessed_text, sentences_list = Preprocess_text(text)
+def summarize_extractive(text, num_sentences, language):
+  preprocessed_text, sentences_list, nlp = Preprocess_text(text, language)
 
-  similarit_matrix_calculated_score = Calculate_similarity_matrix(preprocessed_text)
+  similarit_matrix_calculated_score = Calculate_similarity_matrix(preprocessed_text, nlp)
 
   summary = Generate_summarized_text(similarit_matrix_calculated_score, num_sentences, sentences_list)
   return summary
