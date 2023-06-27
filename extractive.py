@@ -64,4 +64,4 @@ def summarize_extractive(text, num_sentences, language):
   similarit_matrix_calculated_score = Calculate_similarity_matrix(preprocessed_text, nlp)
 
   summary = Generate_summarized_text(similarit_matrix_calculated_score, num_sentences, sentences_list)
-  return summary
+  return " ".join(summary)
