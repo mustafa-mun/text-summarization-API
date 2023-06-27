@@ -6,12 +6,9 @@ from detectlang import *
 
 app = Flask(__name__)
 
-@app.route("/")
-def apiStatus():
-    resp = jsonify(api="OK")
-    resp.status_code = 200
-    resp.mimetype = 'application/json'
-    return resp
+@app.route("/healthz")
+def healthz():
+    return "OK", 200
 
 @app.route("/summarizeText", methods=["POST"])
 def summarizeText():
