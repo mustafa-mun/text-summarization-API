@@ -10,7 +10,7 @@ app = Flask(__name__)
 def healthz():
     return "OK", 200
 
-@app.route("/summarizeText", methods=["POST"])
+@app.route("/summarizeText", methods=["POST", "GET"])
 def summarizeText():
     text = request.args.get("text")
     language = detect_language_of_text(text)
@@ -41,7 +41,7 @@ def summarizeText():
     resp.mimetype = 'application/json'
     return resp
     
-@app.route("/summarizeUrl", methods=["POST"])
+@app.route("/summarizeUrl", methods=["POST", "GET"])
 def summarizeUrl():
     url = request.args.get("url")
     text = get_texts_from_url(url)
@@ -76,4 +76,4 @@ def summarizeUrl():
 
 
 if __name__ == "__main__":
-    app.run(host='127.0.0.1', port=5002)
+    app.run()
