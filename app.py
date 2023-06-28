@@ -17,7 +17,7 @@ def healthz():
 
 @app.route("/summarizeExtractive", methods=["POST"])
 @cache.cached()
-def summarize_text():
+def summarize_text_extractive():
     textParam = request.args.get("text")
     urlParam = request.args.get("url")
     text = None
@@ -50,7 +50,7 @@ def summarize_text():
     
 @app.route("/summarizeAbstractive", methods=["POST"])
 @cache.cached()
-def summarize_abstractive():
+def summarize_text_abstractive():
     textParam = request.args.get("text")
     urlParam = request.args.get("url")
     text = None
