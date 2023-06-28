@@ -3,22 +3,14 @@ from extractive import *
 from abstractive import *
 from fetch import *
 from detectlang import *
-from flask_caching import Cache
-
-config={'CACHE_TYPE': 'SimpleCache'} 
 
 app = Flask(__name__)
-
-app.config.from_mapping(config)
-
-cache = Cache(app)
 
 @app.route("/healthz")
 def healthz():
     return "OK", 200
 
 @app.route("/summarizeExtractive", methods=["POST"])
-# @cache.cached(timeout=50) 
 def summarize_text():
     textParam = request.args.get("text")
     urlParam = request.args.get("url")
@@ -51,7 +43,6 @@ def summarize_text():
     return resp
     
 @app.route("/summarizeAbstractive", methods=["POST"])
-# @cache.cached(timeout=50) 
 def summarize_abstractive():
     textParam = request.args.get("text")
     urlParam = request.args.get("url")
