@@ -3,14 +3,22 @@ from extractive import *
 from abstractive import *
 from fetch import *
 from detectlang import *
+from flask_caching import Cache
+
+config={'CACHE_TYPE': 'SimpleCache'} 
 
 app = Flask(__name__)
+
+app.config.from_mapping(config)
+
+cache = Cache(app)
 
 @app.route("/healthz")
 def healthz():
     return "OK", 200
 
-@app.route("/summarizeText", methods=["POST", "GET"])
+@app.route("/summarizeText", methods=["POST"])
+@cache.cached(timeout=50) # cached for 50 seconds
 def summarizeText():
     text = request.args.get("text")
     if not text:
@@ -20,6 +28,7 @@ def summarizeText():
     num_sentences = request.args.get("num_sentences")
     method = request.args.get("method")
     summary = None
+    print(len(text))
     
     if not num_sentences:
         num_sentences = 3 # default num sentences
@@ -40,13 +49,15 @@ def summarizeText():
     resp.mimetype = 'application/json'
     return resp
     
-@app.route("/summarizeUrl", methods=["POST", "GET"])
+@app.route("/summarizeUrl", methods=["POST"])
+@cache.cached(timeout=50) # cached for 50 seconds
 def summarizeUrl():
     url = request.args.get("url")
     if not url:
         error_response = jsonify(error="Missing or empty 'url' parameter")
         return error_response, 400
     text = get_texts_from_url(url)
+    print(len(text))
     language = detect_language_of_text(text)
     num_sentences = request.args.get("num_sentences")
     method = request.args.get("method")
@@ -73,5 +84,5 @@ def summarizeUrl():
     return resp
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run()
