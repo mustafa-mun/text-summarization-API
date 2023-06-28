@@ -17,72 +17,70 @@ cache = Cache(app)
 def healthz():
     return "OK", 200
 
-@app.route("/summarizeText", methods=["POST"])
-@cache.cached(timeout=50) # cached for 50 seconds
-def summarizeText():
-    text = request.args.get("text")
-    if not text:
-        error_response = jsonify(error="Missing or empty 'text' parameter")
+@app.route("/summarizeExtractive", methods=["POST"])
+# @cache.cached(timeout=50) 
+def summarize_text():
+    textParam = request.args.get("text")
+    urlParam = request.args.get("url")
+    text = None
+    if not textParam and not urlParam:
+        error_response = jsonify(error="Missing or empty 'text' or 'url' parameter")
         return error_response, 400
+    if textParam and urlParam:
+        error_response = jsonify(error="Choose between 'text' or 'url' parameter")
+        return error_response, 400
+    
+    if textParam:
+        text = textParam
+    if urlParam:
+        # Extract text from the URL
+        text = get_texts_from_url(urlParam)
+
     language = detect_language_of_text(text)
     num_sentences = request.args.get("num_sentences")
-    method = request.args.get("method")
-    summary = None
-    print(len(text))
+    
     
     if not num_sentences:
         num_sentences = 3 # default num sentences
 
-    if not method:
-        method = "extractive" # default method
+    summary = summarize_extractive(text, num_sentences, language)
 
-    num_sentences = int(num_sentences)
-    if method == "extractive":
-        summary = summarize_extractive(text, num_sentences, language)
-    elif method == "abstractive":
-        summary = summarize_abstractive(text)
-    else:
-        error_response = jsonify(error="Method not allowed")
-        return error_response, 400
 
     resp = jsonify(summarized_text = summary, text_language = language.name)
     resp.mimetype = 'application/json'
     return resp
     
-@app.route("/summarizeUrl", methods=["POST"])
-@cache.cached(timeout=50) # cached for 50 seconds
-def summarizeUrl():
-    url = request.args.get("url")
-    if not url:
-        error_response = jsonify(error="Missing or empty 'url' parameter")
+@app.route("/summarizeAbstractive", methods=["POST"])
+# @cache.cached(timeout=50) 
+def summarize_abstractive():
+    textParam = request.args.get("text")
+    urlParam = request.args.get("url")
+    text = None
+    if not textParam and not urlParam:
+        error_response = jsonify(error="Missing or empty 'text' or 'url' parameter")
         return error_response, 400
-    text = get_texts_from_url(url)
-    print(len(text))
+    if textParam and urlParam:
+        error_response = jsonify(error="Choose between 'text' or 'url' parameter")
+        return error_response, 400
+    
+    if textParam:
+        text = textParam
+    if urlParam:
+        # Extract text from the URL
+        text = get_texts_from_url(urlParam)
+
     language = detect_language_of_text(text)
     num_sentences = request.args.get("num_sentences")
-    method = request.args.get("method")
-    summary = None
     
     if not num_sentences:
-            num_sentences = 3 # default num sentences
+        num_sentences = 3 # default num sentences
 
-    if not method:
-        method = "extractive" # default method
-
-    num_sentences = int(num_sentences)
-    if method == "extractive":
-        summary = summarize_extractive(text, num_sentences, language)
-    elif method == "abstractive":
-        summary = summarize_abstractive(text)
-    else:
-        error_response = jsonify(error="Method not allowed")
-        return error_response, 400
-    
+    summary = summarize_abstractive(text)
 
     resp = jsonify(summarized_text = summary, text_language = language.name)
     resp.mimetype = 'application/json'
     return resp
-
+    
 
 if __name__ == '__main__':
     app.run()
