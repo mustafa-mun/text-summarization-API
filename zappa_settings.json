@@ -2,7 +2,7 @@
   "dev": {
     "app_function": "app.app",
     "profile_name": null,
-    "project_name": "text-summarizat",
+    "project_name": "smart_summarize",
     "runtime": "python3.8",
     "s3_bucket": "zappa-tx1py3v1r",
     "aws_region": "us-east-1",
