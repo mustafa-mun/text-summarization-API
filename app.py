@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request
 from extractive import * 
 from abstractive import *
 from fetch import *
+from translate import *
 from detectlang import *
 from flask_caching import Cache
 
@@ -96,6 +97,37 @@ async def summarize_file_abstractive():
     resp = await abstractive_handler(text)
     return resp
 
+@app.route("/translateText", methods=["POST"])
+@cache.cached()
+async def translate_text():
+    target_param = request.args.get("target")
+    text_param = request.args.get("text")
+    if not target_param:
+        error_response = jsonify(error="Missing or empty 'target' parameter")
+        return error_response, 400
+    if not text_param:
+        error_response = jsonify(error="Missing or empty 'text' parameter")
+        return error_response, 400
+    
+    resp = await translate_handler(text_param, target_param)
+    return resp
+
+@app.route("/translateFile", methods=["POST"])
+@cache.cached()
+async def translate_file():
+    target_param = request.args.get("target")
+    file_param = request.args.get("file")
+    if not target_param:
+        error_response = jsonify(error="Missing or empty 'target' parameter")
+        return error_response, 400
+    if not file_param:
+        error_response = jsonify(error="Missing or empty 'file' parameter")
+        return error_response, 400
+    
+    text = await read_file(file_param)
+    resp = await translate_handler(text, target_param)
+    return resp
+
 async def extractive_handler(text):
     language = await detect_language_of_text(text)
     num_sentences = request.args.get("num_sentences")
@@ -123,6 +155,19 @@ async def abstractive_handler(text):
     summary = await summarize_abstractive(text, int(min_length_param), int(max_length_param))
 
     resp = jsonify(summarized_text = summary, text_language = language.name)
+    resp.mimetype = 'application/json'
+    return resp
+
+async def translate_handler(text, target_param):
+    text_language = await detect_language_of_text(text)
+    translated_text = await translate(text, target_param)
+    sanitized_text = sanitize_text(translated_text)
+
+    if not translated_text:
+        error_response = jsonify(error="Target language not found")
+        return error_response, 404
+   
+    resp = jsonify(translated_text = sanitized_text, from_language = text_language.name, to_language = target_param)
     resp.mimetype = 'application/json'
     return resp
 
