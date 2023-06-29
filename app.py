@@ -131,19 +131,30 @@ async def translate_file():
 async def extractive_handler(text):
     language = await detect_language_of_text(text)
     num_sentences = request.args.get("num_sentences")
-    
+    to_language = request.args.get("to_language")
+
     if not num_sentences:
         num_sentences = 3 # default num sentences
 
-    summary = await summarize_extractive(text, num_sentences, language)
-
-    resp = jsonify(summarized_text = summary, text_language = language.name)
-    resp.mimetype = 'application/json'
-    return resp
+    if not to_language:
+        # summarize text without translating
+        summary = await summarize_extractive(text, num_sentences, language)
+        resp = jsonify(summarized_text = summary, text_language = language.name)
+        resp.mimetype = 'application/json'
+        return resp
+    else:
+        # summarize text after translating
+        translated_text = await translate(text, to_language)
+        sanitized_text = sanitize_text(translated_text) # sanitize text after translation
+        summary = await summarize_extractive(sanitized_text, num_sentences, language)
+        resp = jsonify(summarized_text = summary, from_language = language.name, to_language = to_language)
+        resp.mimetype = 'application/json'
+        return resp
 
 async def abstractive_handler(text):
     min_length_param = request.args.get("min")
     max_length_param = request.args.get("max")
+    to_language = request.args.get("to_language")
 
     language = await detect_language_of_text(text)
 
@@ -152,11 +163,21 @@ async def abstractive_handler(text):
     if not max_length_param or int(max_length_param) > 200: # max length can be maximum 200
         max_length_param = 80 # default max length
 
-    summary = await summarize_abstractive(text, int(min_length_param), int(max_length_param))
 
-    resp = jsonify(summarized_text = summary, text_language = language.name)
-    resp.mimetype = 'application/json'
-    return resp
+    if not to_language:
+        # summarize text without translating
+        summary = await summarize_abstractive(text, int(min_length_param), int(max_length_param))
+        resp = jsonify(summarized_text = summary, text_language = language.name)
+        resp.mimetype = 'application/json'
+        return resp
+    else:
+        # summarize text after translating
+        translated_text = await translate(text, to_language)
+        sanitized_text = sanitize_text(translated_text) # sanitize text after translation
+        summary = await summarize_abstractive(sanitized_text, int(min_length_param), int(max_length_param))
+        resp = jsonify(summarized_text = summary, from_language = language.name, to_language = to_language)
+        resp.mimetype = 'application/json'
+        return resp
 
 async def translate_handler(text, target_param):
     text_language = await detect_language_of_text(text)
