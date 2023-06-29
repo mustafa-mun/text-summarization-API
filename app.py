@@ -128,6 +128,22 @@ async def translate_file():
     resp = await translate_handler(text, target_param)
     return resp
 
+@app.route("/translateUrl", methods=["POST"])
+@cache.cached()
+async def translate_url():
+    target_param = request.args.get("target")
+    url_param = request.args.get("url")
+    if not target_param:
+        error_response = jsonify(error="Missing or empty 'target' parameter")
+        return error_response, 400
+    if not url_param:
+        error_response = jsonify(error="Missing or empty 'url' parameter")
+        return error_response, 400
+    
+    text = await get_html_from_url(url_param)
+    resp = await translate_handler(text, target_param)
+    return resp
+
 async def extractive_handler(text):
     language = await detect_language_of_text(text)
     num_sentences = request.args.get("num_sentences")
