@@ -9,7 +9,7 @@ from flask_caching import Cache
 config = {
     "DEBUG": True,          # some Flask specific configs
     "CACHE_TYPE": "SimpleCache",  # Flask-Caching related configs
-    "CACHE_DEFAULT_TIMEOUT": 50
+    "CACHE_DEFAULT_TIMEOUT": 20
 }
 app = Flask(__name__)
 # tell Flask to use the above defined config
