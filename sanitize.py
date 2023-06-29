@@ -10,7 +10,7 @@ def sanitize_text(text):
     text = html.unescape(text)
 
     # Normalize text
-    text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("utf-8")
+    text = unicodedata.normalize("NFKC", text)
 
     # Replace special characters
     text = text.replace("ı", "i").replace("ğ", "g").replace("ö", "o").replace("ü", "u").replace("ç", "c")
