@@ -4,7 +4,7 @@ import numpy as np
 from sanitize import *
 from lingua import Language
 
-def Preprocess_text(text, language):
+async def Preprocess_text(text, language):
   nlp = None
   if language == Language.ENGLISH: 
     nlp = spacy.load("en_core_web_md") # english model
@@ -33,7 +33,7 @@ def Preprocess_text(text, language):
 
 
 
-def Calculate_similarity_matrix(lemmetized_list, nlp):
+async def Calculate_similarity_matrix(lemmetized_list, nlp):
   # Calculate the similarity matrix
   similarity_matrix = []
   for i in range(len(lemmetized_list)):
@@ -49,7 +49,7 @@ def Calculate_similarity_matrix(lemmetized_list, nlp):
   scores = nx.pagerank(graph)
   return scores
 
-def Generate_summarized_text(scores, num_sentences, sentences):
+async def Generate_summarized_text(scores, num_sentences, sentences):
     
   # Sort the sentences by their scores and extract the top N sentences
   top_sentence_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:num_sentences]
@@ -58,10 +58,10 @@ def Generate_summarized_text(scores, num_sentences, sentences):
 
 
 
-def summarize_extractive(text, num_sentences, language):
-  preprocessed_text, sentences_list, nlp = Preprocess_text(text, language)
+async def summarize_extractive(text, num_sentences, language):
+  preprocessed_text, sentences_list, nlp = await Preprocess_text(text, language)
 
-  similarit_matrix_calculated_score = Calculate_similarity_matrix(preprocessed_text, nlp)
+  similarit_matrix_calculated_score = await Calculate_similarity_matrix(preprocessed_text, nlp)
 
-  summary = Generate_summarized_text(similarit_matrix_calculated_score, num_sentences, sentences_list)
+  summary = await Generate_summarized_text(similarit_matrix_calculated_score, num_sentences, sentences_list)
   return " ".join(summary)
