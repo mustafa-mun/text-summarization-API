@@ -1,4 +1,4 @@
-FROM python:3.8.10
+FROM python:3.10
 EXPOSE 8080
 WORKDIR /app
 COPY requirements.txt requirements.txt
