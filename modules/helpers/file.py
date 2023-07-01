@@ -1,4 +1,4 @@
-from sanitize import *
+from modules.helpers.sanitize import *
 import os
 
 async def read_file(path_to_file):
