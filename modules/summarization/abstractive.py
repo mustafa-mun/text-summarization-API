@@ -1,5 +1,5 @@
 from transformers import T5TokenizerFast, T5ForConditionalGeneration
-from sanitize import *
+from modules.helpers.sanitize import *
 
 # Load the pre-trained model and tokenizer
 model_name = "t5-base"

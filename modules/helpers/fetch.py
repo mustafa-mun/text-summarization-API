@@ -1,5 +1,5 @@
 import requests
-from sanitize import *
+from modules.helpers.sanitize import *
 from bs4 import BeautifulSoup
 
 async def get_texts_from_url(url):

@@ -1,5 +1,5 @@
 from deep_translator import GoogleTranslator
-from sanitize import *
+from modules.helpers.sanitize import *
 
 async def translate(text, target_language):
     tl = target_language.lower()

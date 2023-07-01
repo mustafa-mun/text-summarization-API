@@ -1,7 +1,7 @@
 import spacy
 import networkx as nx
 import numpy as np
-from sanitize import *
+from modules.helpers.sanitize import *
 from lingua import Language
 
 async def Preprocess_text(text, language):
