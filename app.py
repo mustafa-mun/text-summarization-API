@@ -22,9 +22,3 @@ translateController.cache.init_app(app, config=config)
 @app.route("/healthz")
 def healthz():
     return "OK", 200
-
-@app.errorhandler(Exception)
-def handle_exception(error):
-    # Handle the exception
-    error_response = jsonify(error=str(error))
-    return error_response, 500
