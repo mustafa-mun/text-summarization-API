@@ -19,6 +19,8 @@ async def translate(text, target_language):
         sanitized_text = sanitize_text(text)
         return translator.translate(sanitized_text)
 
+def return_supported_languages():
+    return GoogleTranslator().get_supported_languages(as_dict=True)
 
 def split_string(string):
     max_part_length = 5000

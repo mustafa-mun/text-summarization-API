@@ -9,7 +9,7 @@ from flask_caching import Cache
 config = {
     "DEBUG": True,          # some Flask specific configs
     "CACHE_TYPE": "SimpleCache",  # Flask-Caching related configs
-    "CACHE_DEFAULT_TIMEOUT": 20
+    "CACHE_DEFAULT_TIMEOUT": 60
 }
 app = Flask(__name__)
 # tell Flask to use the above defined config
@@ -32,6 +32,15 @@ async def summarize_text_extractive():
     
     resp = await extractive_handler(text_param)
     return resp
+
+@app.route("/getSupportedLanguages", methods=["GET"])
+@cache.cached()
+def get_supported_languages():
+    supported_languages = return_supported_languages()
+    resp = jsonify(supported_languages)
+    resp.mimetype = 'application/json'
+    return resp
+
 ## ABSTRACTIVE TEXT ##
 @app.route("/summarizeTextAbstractive", methods=["POST"])
 @cache.cached()
