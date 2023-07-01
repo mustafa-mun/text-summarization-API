@@ -146,11 +146,13 @@ async def translate_url():
 
 async def extractive_handler(text):
     language = await detect_language_of_text(text)
-    num_sentences = request.args.get("num_sentences")
+    num_sentences = request.args.get("sentences")
     to_language = request.args.get("to_language")
 
     if not num_sentences:
         num_sentences = 3 # default num sentences
+    else:
+        num_sentences = int(num_sentences)
 
     if not to_language:
         # summarize text without translating
