@@ -1,12 +1,5 @@
 from flask import Flask, Blueprint
 from controllers import summarizeExtractiveController, summarizeAbstractiveController, translateController
-from flask_caching import Cache
-
-config = {
-    "DEBUG": True,          # some Flask specific configs
-    "CACHE_TYPE": "SimpleCache",  # Flask-Caching related configs
-    "CACHE_DEFAULT_TIMEOUT": 60
-}
 
 app = Flask(__name__)
 
@@ -20,14 +13,6 @@ v1_blueprint.register_blueprint(translateController.translate_blueprint)
 
 # Register the v1 blueprint to the app
 app.register_blueprint(v1_blueprint)
-# tell Flask to use the above defined config
-app.config.from_mapping(config)
-cache = Cache(app)
-
-summarizeExtractiveController.cache.init_app(app, config=config)
-summarizeAbstractiveController.cache.init_app(app, config=config)
-translateController.cache.init_app(app, config=config)
-
 
 @app.route("/healthz")
 def healthz():
