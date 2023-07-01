@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 from controllers import summarizeExtractiveController, summarizeAbstractiveController, translateController
 from flask_caching import Cache
 
@@ -22,3 +22,9 @@ translateController.cache.init_app(app, config=config)
 @app.route("/healthz")
 def healthz():
     return "OK", 200
+
+@app.errorhandler(Exception)
+def handle_exception(error):
+    # Handle the exception
+    error_response = jsonify(error=str(error))
+    return error_response, 500
