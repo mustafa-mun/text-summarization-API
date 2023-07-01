@@ -94,7 +94,7 @@ async def translate_handler(text, target_param):
         error_response = jsonify(error=str(e))
         return error_response, 500
 
-@translate.errorhandler(BadRequest)
+@translate_blueprint.errorhandler(BadRequest)
 def handle_bad_request(e):
     error_response = jsonify(error=str(e))
     return error_response, 400
