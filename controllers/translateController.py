@@ -73,6 +73,27 @@ async def translate_url():
         error_response = jsonify(error=str(e))
         return error_response, 500
 
+@translate_blueprint.route("/getTextLanguage", methods=["GET"])
+@cache.cached()
+async def get_language_of_text():
+    text_param = request.args.get("text")
+    if not text_param:
+        raise BadRequest("Missing or empty 'text' parameter")
+    
+    try:
+        language = await detect_language_of_text(text_param)
+        supported_langs = return_supported_languages()
+        language_code = supported_langs[language.name.lower()]
+        resp = jsonify(
+            language = language.name,
+            language_code = language_code
+        )
+        resp.mimetype = 'application/json'
+        return resp
+    except Exception as e:
+        error_response = jsonify(error=str(e))
+        return error_response, 500    
+
 async def translate_handler(text, target_param):
     try:
         text_language = await detect_language_of_text(text)
