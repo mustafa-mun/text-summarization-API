@@ -3,56 +3,34 @@ from werkzeug.exceptions import BadRequest
 from modules.summarization.abstractive import * 
 from modules.helpers.fetch import *
 from modules.language.translate import *
+from modules.helpers.file import *
 from modules.language.detectlang import *
-from flask_caching import Cache
+import validators
 
 summarize_abs_blueprint = Blueprint('summarize_abstractive', __name__)
-cache = Cache()
+
 ## ABSTRACTIVE TEXT ##
-@summarize_abs_blueprint.route("/summarizeTextAbstractive", methods=["POST"])
-@cache.cached()
+@summarize_abs_blueprint.route("/summarizeAbstractive", methods=["POST"])
 async def summarize_text_abstractive():
-    text_param = request.args.get("text")
-    if not text_param:
-        raise BadRequest("Missing or empty 'text' parameter")
+    content_param = request.args.get("content")
+    resp = None
+    if not content_param:
+        raise BadRequest("Missing or empty 'content' parameter")
     try:
-        resp = await abstractive_handler(text_param)
-        return resp
-    except Exception as e:
-        error_response = jsonify(error=str(e))
-        return error_response, 500
-
-## ABSTRACTIVE URL ##
-@summarize_abs_blueprint.route("/summarizeUrlAbstractive", methods=["POST"])
-@cache.cached()
-async def summarize_url_abstractive():
-    url_param = request.args.get("url")
-    
-    if not url_param:
-        raise BadRequest("Missing or empty 'url' parameter")
-    
-    try:
-         # Extract text from the URL
-        text = await get_texts_from_url(url_param)
-        resp = await abstractive_handler(text)
-        return resp
-    except Exception as e:
-        error_response = jsonify(error=str(e))
-        return error_response, 500
-
-## ABSTRACTIVE FILE ##
-@summarize_abs_blueprint.route("/summarizeFileAbstractive", methods=["POST"])
-@cache.cached()
-async def summarize_file_abstractive():
-    file_param = request.args.get("file")
-    
-    if not file_param:
-        raise BadRequest("Missing or empty 'file' parameter")
-
-    try:
-         # Extract text from the URL
-        text = await read_file(file_param)
-        resp = await abstractive_handler(text)
+        # check if content is url
+        if validators.url(content_param):
+            # content is a url
+            text = await get_texts_from_url(content_param)
+            resp = await abstractive_handler(text)
+        # check if content is a file
+        elif is_filename(content_param):
+            # content is file
+            # Extract text from the URL
+            text = await read_file(content_param)
+            resp = await abstractive_handler(text)
+        else:
+            # content is text
+            resp = await abstractive_handler(content_param)
         return resp
     except Exception as e:
         error_response = jsonify(error=str(e))
@@ -66,11 +44,15 @@ async def abstractive_handler(text):
     try:
         language = await detect_language_of_text(text)
 
-        if not min_length_param or int(min_length_param) > 100: # min length can be maximum 100
+        if not min_length_param: 
             min_length_param = 50 # default min length
-        if not max_length_param or int(max_length_param) > 200: # max length can be maximum 200
-            max_length_param = 80 # default max length
+        if not max_length_param : 
+            max_length_param = 100 # default max length
 
+        if int(min_length_param) > 100: # min length can be maximum 100
+            min_length_param = 100
+        if  int(max_length_param) > 200: # max length can be maximum 200
+            max_length_param = 200
 
         if not to_language:
             # summarize text without translating

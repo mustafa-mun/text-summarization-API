@@ -4,13 +4,11 @@ from modules.helpers.fetch import *
 from modules.helpers.file import *
 from modules.language.translate import *
 from modules.language.detectlang import *
-from flask_caching import Cache
+import validators
 
 translate_blueprint = Blueprint('translate', __name__)
-cache = Cache()
 
 @translate_blueprint.route("/getSupportedLanguages", methods=["GET"])
-@cache.cached()
 def get_supported_languages():
     try:
         supported_languages = return_supported_languages()
@@ -21,68 +19,60 @@ def get_supported_languages():
         error_response = jsonify(error=str(e))
         return error_response, 500
 
-@translate_blueprint.route("/translateText", methods=["POST"])
-@cache.cached()
+@translate_blueprint.route("/translate", methods=["POST"])
 async def translate_text():
     target_param = request.args.get("target")
-    text_param = request.args.get("text")
+    content_param = request.args.get("content")
     if not target_param:
         raise BadRequest("Missing or empty 'target' parameter")
-    if not text_param:
-        raise BadRequest("Missing or empty 'text' parameter")
+    if not content_param:
+        raise BadRequest("Missing or empty 'content' parameter")
     
     try:
-        resp = await translate_handler(text_param, target_param)
+         # check if content is url
+        if validators.url(content_param):
+            # content is a url
+            text = await get_texts_from_url(content_param)
+            resp = await translate_handler(text, target_param)
+        # check if content is a file
+        elif is_filename(content_param):
+            # content is file
+            # Extract text from the URL
+            text = await read_file(content_param)
+            resp = await translate_handler(text, target_param)
+        else:
+            # content is text
+            resp = await translate_handler(content_param, target_param)
         return resp
     except Exception as e:
         error_response = jsonify(error=str(e))
         return error_response, 500
 
-@translate_blueprint.route("/translateFile", methods=["POST"])
-@cache.cached()
-async def translate_file():
-    target_param = request.args.get("target")
-    file_param = request.args.get("file")
-    if not target_param:
-        raise BadRequest("Missing or empty 'target' parameter")
-    if not file_param:
-        raise BadRequest("Missing or empty 'file' parameter")
-    
-    try:
-        text = await read_file(file_param)
-        resp = await translate_handler(text, target_param)
-        return resp
-    except Exception as e:
-        error_response = jsonify(error=str(e))
-        return error_response, 500
 
-@translate_blueprint.route("/translateUrl", methods=["POST"])
-@cache.cached()
-async def translate_url():
-    target_param = request.args.get("target")
-    url_param = request.args.get("url")
-    if not target_param:
-        raise BadRequest("Missing or empty 'target' parameter")
-    if not url_param:
-        raise BadRequest("Missing or empty 'url' parameter")
+@translate_blueprint.route("/getContentLanguage", methods=["GET"])
+async def get_language_of_content():
+    content_param = request.args.get("content")
+    resp = None
+    language = None
+    if not content_param:
+        raise BadRequest("Missing or empty 'content' parameter")
     
     try:
-        text = await get_html_from_url(url_param)
-        resp = await translate_handler(text, target_param)
-        return resp
-    except Exception as e:
-        error_response = jsonify(error=str(e))
-        return error_response, 500
+         # check if content is url
+        if validators.url(content_param):
+            # content is a url
+            text = await get_texts_from_url(content_param)
+            language = await detect_language_of_text(text)
+        # check if content is a file
+        elif is_filename(content_param):
+            # content is file
+            # Extract text from the file
+            text = await read_file(content_param)
+            language = await detect_language_of_text(text)
+        else:
+            # content is text
+            language = await detect_language_of_text(content_param)
 
-@translate_blueprint.route("/getTextLanguage", methods=["GET"])
-@cache.cached()
-async def get_language_of_text():
-    text_param = request.args.get("text")
-    if not text_param:
-        raise BadRequest("Missing or empty 'text' parameter")
-    
-    try:
-        language = await detect_language_of_text(text_param)
         supported_langs = return_supported_languages()
         language_code = supported_langs[language.name.lower()]
         resp = jsonify(
