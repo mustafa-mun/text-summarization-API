@@ -16,7 +16,4 @@ async def get_html_from_url(url):
     text = ' '.join([p.get_text() for p in paragraphs])
     return text
 
-async def read_file(path_to_file):
-    file = open(path_to_file, "r")
-    sanitized_file = sanitize_text(file.read())
-    return sanitized_file
+

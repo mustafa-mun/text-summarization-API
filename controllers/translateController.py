@@ -1,6 +1,7 @@
 from flask import jsonify, request, Blueprint
 from werkzeug.exceptions import BadRequest
 from modules.helpers.fetch import *
+from modules.helpers.file import *
 from modules.language.translate import *
 from modules.language.detectlang import *
 from flask_caching import Cache
