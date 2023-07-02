@@ -1,4 +1,4 @@
-from flask import jsonify, request, Blueprint
+from flask import jsonify, request, Blueprint, Response
 from werkzeug.exceptions import BadRequest
 from modules.summarization.extractive import * 
 from modules.helpers.fetch import *
@@ -6,6 +6,7 @@ from modules.helpers.file import *
 from modules.language.translate import *
 from modules.language.detectlang import *
 import validators
+import json
 
 summarize_ext_blueprint = Blueprint('summarize_extractive', __name__)
 
@@ -13,7 +14,6 @@ summarize_ext_blueprint = Blueprint('summarize_extractive', __name__)
 @summarize_ext_blueprint.route("/summarizeExtractive", methods=["POST"])
 async def summarize_text_extractive():
     content_param = request.args.get("content")
-    resp = None
     if not content_param:
         raise BadRequest("Missing or empty 'content' parameter")
     
@@ -62,16 +62,26 @@ async def extractive_handler(content):
 async def handle_to_language_param(to_language, summary, language):
     if not to_language:
     # summarize text without translating
-        resp = jsonify(summarized_text = summary, text_language = language.name)
-        resp.mimetype = 'application/json'
-        return resp
+        data = {
+            "summarized_text": summary,
+            "text_language": language.name.lower(),
+        }
+        json_string = json.dumps(data, ensure_ascii=False)
+        response = Response(json_string, content_type="application/json; charset=utf-8" )
+        return response
     else:
         # summarize text after translating
         translated_text = await translate(summary, to_language)
         sanitized_text = sanitize_text(translated_text) # sanitize text after translation
-        resp = jsonify(summarized_text = sanitized_text, from_language = language.name, to_language = to_language)
-        resp.mimetype = 'application/json'
-        return resp
+        data = {
+            "summarized_text": sanitized_text,
+            "from_language": language.name.lower(),
+            "to_language": to_language
+        }
+        json_string = json.dumps(data, ensure_ascii=False)
+        response = Response(json_string, content_type="application/json; charset=utf-8" )
+        return response
+    
 @summarize_ext_blueprint.errorhandler(BadRequest)
 def handle_bad_request(e):
     error_response = jsonify(error=str(e))

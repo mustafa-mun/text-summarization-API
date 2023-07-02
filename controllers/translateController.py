@@ -1,10 +1,11 @@
-from flask import jsonify, request, Blueprint
+from flask import jsonify, request, Blueprint, Response
 from werkzeug.exceptions import BadRequest
 from modules.helpers.fetch import *
 from modules.helpers.file import *
 from modules.language.translate import *
 from modules.language.detectlang import *
 import validators
+import json
 
 translate_blueprint = Blueprint('translate', __name__)
 
@@ -13,7 +14,7 @@ def get_supported_languages():
     try:
         supported_languages = return_supported_languages()
         resp = jsonify(supported_languages)
-        resp.mimetype = 'application/json'
+        resp.headers.add('Content-Type', 'application/json; charset=utf-8')
         return resp
     except Exception as e:
         error_response = jsonify(error=str(e))
@@ -52,7 +53,6 @@ async def translate_text():
 @translate_blueprint.route("/getContentLanguage", methods=["GET"])
 async def get_language_of_content():
     content_param = request.args.get("content")
-    resp = None
     language = None
     if not content_param:
         raise BadRequest("Missing or empty 'content' parameter")
@@ -75,12 +75,13 @@ async def get_language_of_content():
 
         supported_langs = return_supported_languages()
         language_code = supported_langs[language.name.lower()]
-        resp = jsonify(
-            language = language.name,
-            language_code = language_code
-        )
-        resp.mimetype = 'application/json'
-        return resp
+        data = {
+            "language": language.name.lower(),
+            "language_code": language_code,
+        }
+        json_string = json.dumps(data, ensure_ascii=False)
+        response = Response(json_string, content_type="application/json; charset=utf-8" )
+        return response
     except Exception as e:
         error_response = jsonify(error=str(e))
         return error_response, 500    
@@ -95,13 +96,14 @@ async def translate_handler(text, target_param):
             error_response = jsonify(error="Target language not found")
             return error_response, 404
 
-        resp = jsonify(
-            translated_text=sanitized_text,
-            from_language=text_language.name,
-            to_language=target_param
-        )
-        resp.mimetype = 'application/json'
-        return resp
+        data = {
+            "translated_text": sanitized_text,
+            "from_language": text_language.name.lower(),
+            "to_language": target_param
+        }
+        json_string = json.dumps(data, ensure_ascii=False)
+        response = Response(json_string, content_type="application/json; charset=utf-8" )
+        return response
     except Exception as e:
         error_response = jsonify(error=str(e))
         return error_response, 500

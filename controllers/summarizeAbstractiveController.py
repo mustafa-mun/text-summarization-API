@@ -1,4 +1,4 @@
-from flask import jsonify, request, Blueprint
+from flask import jsonify, request, Blueprint, Response
 from werkzeug.exceptions import BadRequest
 from modules.summarization.abstractive import * 
 from modules.helpers.fetch import *
@@ -6,6 +6,7 @@ from modules.language.translate import *
 from modules.helpers.file import *
 from modules.language.detectlang import *
 import validators
+import json
 
 summarize_abs_blueprint = Blueprint('summarize_abstractive', __name__)
 
@@ -57,17 +58,26 @@ async def abstractive_handler(text):
         if not to_language:
             # summarize text without translating
             summary = await summarize_abstractive(text, int(min_length_param), int(max_length_param))
-            resp = jsonify(summarized_text = summary, text_language = language.name)
-            resp.mimetype = 'application/json'
-            return resp
+            data = {
+            "summarized_text": summary,
+            "text_language": language.name.lower(),
+            }
+            json_string = json.dumps(data, ensure_ascii=False)
+            response = Response(json_string, content_type="application/json; charset=utf-8" )
+            return response
         else:
             # summarize text after translating
             translated_text = await translate(text, to_language)
             sanitized_text = sanitize_text(translated_text) # sanitize text after translation
             summary = await summarize_abstractive(sanitized_text, int(min_length_param), int(max_length_param))
-            resp = jsonify(summarized_text = summary, from_language = language.name, to_language = to_language)
-            resp.mimetype = 'application/json'
-            return resp
+            data = {
+            "summarized_text": summary,
+            "from_language": language.name.lower(),
+            "to_language": to_language
+            }
+            json_string = json.dumps(data, ensure_ascii=False)
+            response = Response(json_string, content_type="application/json; charset=utf-8" )
+            return response
     except Exception as e:
         error_response = jsonify(error=str(e))
         return error_response, 500
