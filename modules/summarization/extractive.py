@@ -1,67 +1,36 @@
-import spacy
-import networkx as nx
-import numpy as np
-from modules.helpers.sanitize import *
-from lingua import Language
+from __future__ import absolute_import
+from __future__ import division, print_function, unicode_literals
+import nltk
+nltk.download('punkt')
+from modules.helpers.file import *
+from sumy.parsers.html import HtmlParser
+from sumy.parsers.plaintext import PlaintextParser
+from sumy.nlp.tokenizers import Tokenizer
+from sumy.summarizers.lsa import LsaSummarizer as Summarizer
+from sumy.nlp.stemmers import Stemmer
+from sumy.utils import get_stop_words
+from modules.language.detectlang import *
 
-async def Preprocess_text(text, language):
-  nlp = None
-  if language == Language.ENGLISH: 
-    nlp = spacy.load("en_core_web_md") # english model
+async def summarize_extractive(sentences_count, language, text, file, url):
+  LANGUAGE = language
+  SENTENCES_COUNT = sentences_count
+  parser = None
+  if url:
+    # content is a url
+    parser = HtmlParser.from_url(url, Tokenizer(LANGUAGE))
+  elif file:
+    # content is file
+    parser = PlaintextParser.from_file(file, Tokenizer(LANGUAGE))
   else:
-     nlp = spacy.load("xx_sent_ud_sm") # multi-language model
-  # Preprocess the text
-  sanitized_text = sanitize_text(text)
-  doc = nlp(sanitized_text)
+    # content is text
+    parser = PlaintextParser.from_string(text, Tokenizer(LANGUAGE))
+  summary = ""
+  stemmer = Stemmer(LANGUAGE)
 
-  # Split the text into individual sentences
-  sentences = [sent.text.strip() for sent in doc.sents]
+  summarizer = Summarizer(stemmer)
+  summarizer.stop_words = get_stop_words(LANGUAGE)
 
-  # Create a list of stopwords
-  stopwords = list(nlp.Defaults.stop_words)
+  for sentence in summarizer(parser.document, SENTENCES_COUNT):
+      summary += str(sentence) + " "
 
-  # Remove stopwords and punctuation, and lemmatize the remaining words
-  lemmatized_sentences = []
-  for sentence in sentences:
-      words = []
-      for word in nlp(sentence):
-          if word.text.lower() not in stopwords and not word.is_punct:
-              words.append(word.lemma_)
-      lemmatized_sentences.append(" ".join(words))
-
-  return lemmatized_sentences,sentences,nlp   
-
-
-
-async def Calculate_similarity_matrix(lemmetized_list, nlp):
-  # Calculate the similarity matrix
-  similarity_matrix = []
-  for i in range(len(lemmetized_list)):
-      row = []
-      for j in range(len(lemmetized_list)):
-          row.append(nlp(lemmetized_list[i]).similarity(nlp(lemmetized_list[j])))
-      similarity_matrix.append(row)
-
-  # Convert the similarity matrix to a graph
-  graph = nx.from_numpy_array(np.array(similarity_matrix))
-
-  # Calculate the PageRank scores
-  scores = nx.pagerank(graph)
-  return scores
-
-async def Generate_summarized_text(scores, num_sentences, sentences):
-    
-  # Sort the sentences by their scores and extract the top N sentences
-  top_sentence_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:num_sentences]
-  summary = [sentences[i] for i in top_sentence_indices]
   return summary
-
-
-
-async def summarize_extractive(text, num_sentences, language):
-  preprocessed_text, sentences_list, nlp = await Preprocess_text(text, language)
-
-  similarit_matrix_calculated_score = await Calculate_similarity_matrix(preprocessed_text, nlp)
-
-  summary = await Generate_summarized_text(similarit_matrix_calculated_score, num_sentences, sentences_list)
-  return " ".join(summary)

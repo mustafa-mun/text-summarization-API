@@ -18,28 +18,14 @@ async def summarize_text_extractive():
         raise BadRequest("Missing or empty 'content' parameter")
     
     try:
-        # check if content is url
-        if validators.url(content_param):
-            # content is a url
-            text = await get_texts_from_url(content_param)
-            resp = await extractive_handler(text)
-        # check if content is a file
-        elif is_filename(content_param):
-            # content is file
-            # Extract text from the URL
-            text = await read_file(content_param)
-            resp = await extractive_handler(text)
-        else:
-            # content is text
-            resp = await extractive_handler(content_param)
+        resp = await extractive_handler(content_param)
         return resp
     except Exception as e:
         error_response = jsonify(error=str(e))
         return error_response, 500
 
-async def extractive_handler(text):
+async def extractive_handler(content):
     try:
-        language = await detect_language_of_text(text)
         num_sentences = request.args.get("sentences")
         to_language = request.args.get("to_language")
 
@@ -48,24 +34,44 @@ async def extractive_handler(text):
         else:
             num_sentences = int(num_sentences)
 
-        if not to_language:
-            # summarize text without translating
-            summary = await summarize_extractive(text, num_sentences, language)
-            resp = jsonify(summarized_text = summary, text_language = language.name)
-            resp.mimetype = 'application/json'
-            return resp
+        if validators.url(content):
+            # content is a url
+            url_text = await get_html_from_url(content)
+            language = await detect_language_of_text(url_text)
+            summary = await summarize_extractive(num_sentences, language.name.lower(), url=content, text=None, file=None)
+            resp = await handle_to_language_param(to_language, summary, language)
+        # check if content is a file
+        elif is_filename(content):
+            # content is file
+            file_text = await read_file(content)
+            language = await detect_language_of_text(file_text)
+            summary = await summarize_extractive(num_sentences, language.name.lower(), file=content, text=None, url=None)
+            resp = await handle_to_language_param(to_language, summary, language)
         else:
-            # summarize text after translating
-            translated_text = await translate(text, to_language)
-            sanitized_text = sanitize_text(translated_text) # sanitize text after translation
-            summary = await summarize_extractive(sanitized_text, num_sentences, language)
-            resp = jsonify(summarized_text = summary, from_language = language.name, to_language = to_language)
-            resp.mimetype = 'application/json'
-            return resp
+            # content is text
+            language = await detect_language_of_text(content)
+            summary = await summarize_extractive(num_sentences, language.name.lower(), text=content, url=None, file=None)
+            resp = await handle_to_language_param(to_language, summary, language)
+        return resp
+    
     except Exception as e:
         error_response = jsonify(error=str(e))
         return error_response, 500
     
+
+async def handle_to_language_param(to_language, summary, language):
+    if not to_language:
+    # summarize text without translating
+        resp = jsonify(summarized_text = summary, text_language = language.name)
+        resp.mimetype = 'application/json'
+        return resp
+    else:
+        # summarize text after translating
+        translated_text = await translate(summary, to_language)
+        sanitized_text = sanitize_text(translated_text) # sanitize text after translation
+        resp = jsonify(summarized_text = sanitized_text, from_language = language.name, to_language = to_language)
+        resp.mimetype = 'application/json'
+        return resp
 @summarize_ext_blueprint.errorhandler(BadRequest)
 def handle_bad_request(e):
     error_response = jsonify(error=str(e))
