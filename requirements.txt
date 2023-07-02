@@ -7,6 +7,7 @@ blinker==1.6.2
 blis==0.7.9
 boto3==1.26.162
 botocore==1.29.162
+breadability==0.1.20
 cachelib==0.9.0
 catalogue==2.0.8
 certifi==2023.5.7
@@ -24,16 +25,13 @@ cymem==2.0.7
 decorator==5.1.1
 deep-translator==1.11.4
 dill==0.3.6
+docopt==0.6.2
 durationpy==0.5
-en-core-web-md @ https://github.com/explosion/spacy-models/releases/download/en_core_web_md-3.5.0/en_core_web_md-3.5.0-py3-none-any.whl#sha256=b492fd2dfeee931dd60232fd1a122bb5c3542ebcd5d614f11844647050aa539e
 filelock==3.12.2
 Flask==2.2.2
-Flask-Caching==2.0.2
-flask-rebar==2.4.1
 fonttools==4.40.0
 frozenlist==1.3.3
 fsspec==2023.6.0
-googletrans==3.0.0
 gunicorn==20.1.0
 h11==0.9.0
 h2==3.2.0
@@ -65,6 +63,7 @@ multidict==6.0.4
 multiprocess==0.70.14
 murmurhash==1.0.9
 networkx==3.1
+nltk==3.8.1
 numpy==1.24.4
 nvidia-cublas-cu11==11.10.3.66
 nvidia-cuda-cupti-cu11==11.7.101
@@ -87,6 +86,7 @@ pox==0.3.2
 ppft==1.7.6.6
 preshed==3.0.8
 psutil==5.9.5
+pycountry==22.3.5
 pycparser==2.21
 pydantic==1.10.9
 PyExecJS==1.5.1
@@ -107,10 +107,8 @@ six==1.16.0
 smart-open==6.3.0
 sniffio==1.3.0
 soupsieve==2.4.1
-spacy==3.5.3
-spacy-legacy==3.0.12
-spacy-loggers==1.0.4
 srsly==2.4.6
+sumy==0.11.0
 sympy==1.12
 text-unidecode==1.3
 thinc==8.1.10
@@ -130,7 +128,6 @@ urllib3==1.26.16
 validators==0.20.0
 wasabi==1.1.2
 Werkzeug==2.2.2
-xx-sent-ud-sm @ https://github.com/explosion/spacy-models/releases/download/xx_sent_ud_sm-3.5.0/xx_sent_ud_sm-3.5.0-py3-none-any.whl#sha256=bbc9c66216e1232e144c33bf525afab525ff0e276850fd0c75762f73a7edb6b8
 yarl==1.9.2
 zappa==0.57.0
 zipp==3.10.0
