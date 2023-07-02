@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import division, print_function, unicode_literals
 import nltk
 nltk.download('punkt')
 from modules.helpers.file import *
