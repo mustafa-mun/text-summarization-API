@@ -13,12 +13,11 @@ def sanitize_text(text):
     text = unicodedata.normalize("NFKC", text)
 
     # Replace special characters
-    text = text.replace("ı", "i").replace("ğ", "g").replace("ş", "s").replace("ö", "o").replace("ü", "u").replace("ç", "c")
+    text = re.sub(r"\W+", " ", text)
 
     # Remove noisy data
-    # For example, removing consecutive whitespace, extra newlines, or special characters
+    # For example, removing consecutive whitespace, extra newlines
     text = re.sub(r"\s+", " ", text)
     text = re.sub(r"\n+", "\n", text)
-    text = re.sub(r"[^a-zA-Z0-9\n.,?! ]", "", text)
 
     return text
