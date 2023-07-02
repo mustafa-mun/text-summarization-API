@@ -9,14 +9,8 @@ def sanitize_text(text):
     # Handle special characters
     text = html.unescape(text)
 
-    # Normalize text
-    text = unicodedata.normalize("NFKC", text)
 
-    # Replace special characters
-    text = re.sub(r"\W+", " ", text)
-
-    # Remove noisy data
-    # For example, removing consecutive whitespace, extra newlines
+    # remove consecutive whitespace, extra newlines
     text = re.sub(r"\s+", " ", text)
     text = re.sub(r"\n+", "\n", text)
 
