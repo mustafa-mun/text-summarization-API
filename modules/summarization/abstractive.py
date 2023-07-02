@@ -1,18 +1,25 @@
-from transformers import T5TokenizerFast, T5ForConditionalGeneration
 from modules.helpers.sanitize import *
+from transformers import BartTokenizer, BartForConditionalGeneration
 
-# Load the pre-trained model and tokenizer
-model_name = "t5-base"
-tokenizer=T5TokenizerFast.from_pretrained(model_name)
-model=T5ForConditionalGeneration.from_pretrained(model_name, return_dict=True)
+# Load the BART model for summarization
+model_name = "facebook/bart-base"
+tokenizer = BartTokenizer.from_pretrained(model_name)
+model = BartForConditionalGeneration.from_pretrained(model_name)
 
 async def summarize_abstractive(text, min_length, max_length):
-    # Tokenize the input text
     sanitized_text = sanitize_text(text)
-    inputs = tokenizer.encode("summarize: " + sanitized_text, return_tensors='pt', max_length=512, padding="max_length", truncation=True)
+
+    # Tokenize the input text
+    tokenized_text = tokenizer([sanitized_text], truncation=True, max_length=max_length, return_tensors="pt")
 
     # Generate the summary
-    output = model.generate(inputs, num_beams=int(2), no_repeat_ngram_size=3, length_penalty=2.0, min_length=min_length, max_length = max_length, early_stopping=True)
-    summary = tokenizer.decode(output[0], skip_special_tokens=True, clean_up_tokenization_spaces=True)
-    return summary
+    summary_ids = model.generate(tokenized_text["input_ids"], 
+                                 attention_mask=tokenized_text["attention_mask"],
+                                 max_length=max_length, 
+                                 min_length=min_length, 
+                                 num_beams=4, 
+                                 early_stopping=True)
 
+    # Decode the summary
+    summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+    return summary
