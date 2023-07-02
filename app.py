@@ -14,6 +14,11 @@ v1_blueprint.register_blueprint(translateController.translate_blueprint)
 # Register the v1 blueprint to the app
 app.register_blueprint(v1_blueprint)
 
+@app.route("/")
+def index():
+    resp, status = healthz()
+    return resp, status
+
 @app.route("/healthz")
 def healthz():
     return "OK", 200
