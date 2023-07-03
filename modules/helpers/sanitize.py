@@ -1,6 +1,5 @@
 import re
 import html
-import unicodedata
 
 def sanitize_text(text):
     # Remove HTML tags
