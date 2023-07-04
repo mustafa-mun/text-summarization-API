@@ -77,7 +77,6 @@ torch==2.0.1
 tqdm==4.65.0
 transformers==4.30.2
 translators==5.7.6
-triton==2.0.0
 troposphere==4.3.2
 typing-extensions==4.7.1
 urllib3==1.26.16
