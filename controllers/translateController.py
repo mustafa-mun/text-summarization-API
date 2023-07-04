@@ -9,7 +9,7 @@ import json
 
 translate_blueprint = Blueprint('translate', __name__)
 
-@translate_blueprint.route("/getSupportedLanguages", methods=["GET"])
+@translate_blueprint.route("/supportedLanguages", methods=["GET"])
 def get_supported_languages():
     try:
         supported_languages = return_supported_languages()
@@ -50,7 +50,7 @@ async def translate_text():
         return error_response, 500
 
 
-@translate_blueprint.route("/getContentLanguage", methods=["GET"])
+@translate_blueprint.route("/contentLanguage", methods=["GET"])
 async def get_language_of_content():
     content_param = request.json.get("content")
     language = None
