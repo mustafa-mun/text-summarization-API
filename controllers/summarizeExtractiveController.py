@@ -13,12 +13,12 @@ summarize_ext_blueprint = Blueprint('summarize_extractive', __name__)
 ## EXTRACTIVE TEXT ##
 @summarize_ext_blueprint.route("/summarizeExtractive", methods=["POST"])
 async def summarize_text_extractive():
-    content_param = request.args.get("content")
-    if not content_param:
+    content = request.json.get("content")
+    if not content:
         raise BadRequest("Missing or empty 'content' parameter")
     
     try:
-        resp = await extractive_handler(content_param)
+        resp = await extractive_handler(content)
         return resp
     except Exception as e:
         error_response = jsonify(error=str(e))
@@ -26,8 +26,8 @@ async def summarize_text_extractive():
 
 async def extractive_handler(content):
     try:
-        num_sentences = request.args.get("sentences")
-        to_language = request.args.get("to_language")
+        num_sentences = request.json.get("sentences")
+        to_language = request.json.get("to_language")
 
         if not num_sentences:
             num_sentences = 3 # default num sentences

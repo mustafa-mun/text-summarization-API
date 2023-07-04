@@ -13,34 +13,34 @@ summarize_abs_blueprint = Blueprint('summarize_abstractive', __name__)
 ## ABSTRACTIVE TEXT ##
 @summarize_abs_blueprint.route("/summarizeAbstractive", methods=["POST"])
 async def summarize_text_abstractive():
-    content_param = request.args.get("content")
+    content = request.json.get("content")
     resp = None
-    if not content_param:
+    if not content:
         raise BadRequest("Missing or empty 'content' parameter")
     try:
         # check if content is url
-        if validators.url(content_param):
+        if validators.url(content):
             # content is a url
-            text = await get_texts_from_url(content_param)
+            text = await get_texts_from_url(content)
             resp = await abstractive_handler(text)
         # check if content is a file
-        elif is_filename(content_param):
+        elif is_filename(content):
             # content is file
             # Extract text from the URL
-            text = await read_file(content_param)
+            text = await read_file(content)
             resp = await abstractive_handler(text)
         else:
             # content is text
-            resp = await abstractive_handler(content_param)
+            resp = await abstractive_handler(content)
         return resp
     except Exception as e:
         error_response = jsonify(error=str(e))
         return error_response, 500
 
 async def abstractive_handler(text):
-    min_length_param = request.args.get("min")
-    max_length_param = request.args.get("max")
-    to_language = request.args.get("to_language")
+    min_length_param =  request.json.get("min")
+    max_length_param = request.json.get("max")
+    to_language = request.json.get("to_language")
 
     try:
         language = await detect_language_of_text(text)
