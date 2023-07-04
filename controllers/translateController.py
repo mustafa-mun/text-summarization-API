@@ -52,7 +52,7 @@ async def translate_text():
 
 @translate_blueprint.route("/contentLanguage", methods=["GET"])
 async def get_language_of_content():
-    content_param = request.json.get("content")
+    content_param = request.args.get("content")
     language = None
     if not content_param:
         raise BadRequest("Missing or empty 'content' parameter")
